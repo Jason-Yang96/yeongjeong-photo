@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+.cache/
+
+# Hugging Face / Diffusers 모델 캐시
+*.safetensors
+*.ckpt
+*.bin
+
+# Node.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.pnpm-debug.log*
+frontend/npm-debug.log*
+
+# 환경변수
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# 에디터
+.idea/
+.vscode/
