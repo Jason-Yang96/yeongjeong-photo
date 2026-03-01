@@ -1,5 +1,6 @@
 {
   "permissions": {
+    "defaultMode": "bypassPermissions",
     "allow": [
       "Bash(git init)",
       "Bash(git add .gitignore backend/main.py backend/requirements.txt frontend/src/app/globals.css frontend/src/app/layout.tsx frontend/src/app/page.tsx frontend/next.config.ts frontend/package.json frontend/postcss.config.mjs frontend/eslint.config.mjs frontend/tsconfig.json frontend/tailwind.config.ts)",
@@ -19,11 +20,21 @@
       "Bash(brew list --formula)",
       "Read(//opt/homebrew/bin/**)",
       "Bash(/opt/homebrew/bin/python3.13 -m venv .venv)",
-      "Bash(pip install -r requirements.txt)"
+      "Bash(pip install -r requirements.txt)",
+      "Read(//Users/goifuneral/yeongjeong-photo/**)",
+      "Bash(xargs -I{} sh -c 'ls -la /proc/{}/exe 2>/dev/null || lsof -p {} 2>/dev/null | grep main.py | head -3')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://localhost:8000/models)",
+      "Bash(python3 -m uvicorn --version)",
+      "Bash(pip3 show uvicorn)",
+      "Bash(pip3 install uvicorn[standard] fastapi diffusers)",
+      "Bash(python3 -:*)",
+      "Read(//Users/goifuneral/.claude/**)"
     ],
     "additionalDirectories": [
       "/Users/goifuneral/.claude/projects/-Users-goifuneral-yeongjeong-photo",
-      "/Users/goifuneral/yeongjeong-photo/frontend/.git"
+      "/Users/goifuneral/yeongjeong-photo/frontend/.git",
+      "/Users/goifuneral/.claude"
     ]
   }
 }

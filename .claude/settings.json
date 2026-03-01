@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lsof -ti :3000)",
+      "Bash(python backend/download_model.py 176425)",
+      "Bash(python3 backend/download_model.py 176425)"
+    ]
+  }
+}
