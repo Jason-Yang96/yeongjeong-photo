@@ -1,20 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "영정사진 메이커",
-  description: "AI로 만드는 온라인 영정사진",
+  title: "고이프라임 영정사진 | AI 영정사진 서비스",
+  description: "AI로 만드는 나만의 영정사진. 미래 모습을 예측하고 추모사를 작성해 드립니다.",
 };
 
 export default function RootLayout({
@@ -24,11 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

@@ -107,6 +107,72 @@ def _square_crop_from_top(img: Image.Image) -> Image.Image:
         return img.crop((x, 0, x + h, h))
 
 
+# ── 추모사 생성 ────────────────────────────────────────────────────────────
+def _build_eulogy(
+    name: str, current_age: int,
+    occupation: str, family: str, values: str, final_message: str,
+) -> str:
+    parts: list[str] = []
+
+    parts.append(f"{name}님의 영전에")
+    parts.append("")
+    parts.append("삼가 고개를 숙입니다.")
+    parts.append("")
+    parts.append(
+        f"{name}님은 {current_age}년의 생애를 통해 우리 곁에서 따뜻한 빛이 되어주셨습니다."
+        f" 그분의 삶은 언제나 사랑과 헌신으로 가득했습니다."
+    )
+
+    if occupation:
+        parts.append(
+            f"{occupation}으로서 맡은 바 소임을 다하시며 주변에 귀감이 되셨고, "
+            f"맡은 일에 언제나 최선을 다하셨습니다."
+        )
+
+    parts.append("")
+    parts.append(
+        f"언제나 주변 사람들과 함께하며 살아가셨고, 그 넉넉한 품과 따뜻한 마음으로 "
+        f"많은 이들에게 힘이 되어주셨습니다."
+    )
+
+    if family:
+        parts.append(
+            f"{family}과(와) 함께한 삶 속에서 {name}님은 사랑과 헌신으로 "
+            f"가족의 중심이 되어주셨습니다."
+        )
+
+    parts.append("")
+
+    if values:
+        parts.append(
+            f"평생 '{values}'을(를) 소중히 여기시며 살아오신 {name}님의 가르침은 "
+            f"우리 모두에게 깊은 울림으로 남을 것입니다."
+        )
+        parts.append("")
+
+    parts.append(
+        f"{name}님은 한평생 존경과 사랑을 받으며 살아오셨고, "
+        f"이제 그 긴 여정을 편안히 마무리하셨습니다."
+    )
+    parts.append(
+        f"삶의 마지막 순간까지 주변을 배려하셨던 {name}님의 따뜻한 마음은 "
+        f"우리 가슴속에 영원히 살아 숨쉴 것입니다."
+    )
+
+    if final_message:
+        parts.append("")
+        parts.append(f'"{final_message}"')
+        parts.append(f"— {name}님이 남기신 말씀")
+
+    parts.append("")
+    parts.append("부디 고이 잠드소서.")
+    parts.append("이제는 편안한 곳에서 영원한 안식을 누리시길 바랍니다.")
+    parts.append("")
+    parts.append("삼가 고인의 명복을 빕니다.")
+
+    return "\n".join(parts)
+
+
 # ── 엔드포인트 ─────────────────────────────────────────────────────────────
 @app.get("/health")
 async def health():
@@ -117,6 +183,21 @@ async def health():
         "model_loading": False,
         "model_error": None,
     }
+
+
+@app.post("/generate-eulogy")
+async def generate_eulogy(
+    name: str = Form(...),
+    current_age: int = Form(...),
+    gender: str = Form(default="male"),
+    occupation: str = Form(default=""),
+    family: str = Form(default=""),
+    values: str = Form(default=""),
+    final_message: str = Form(default=""),
+):
+    _ = gender  # 향후 성별별 문체 확장을 위해 수신만 함
+    eulogy = _build_eulogy(name, current_age, occupation, family, values, final_message)
+    return JSONResponse({"eulogy": eulogy})
 
 
 @app.get("/template/status")
