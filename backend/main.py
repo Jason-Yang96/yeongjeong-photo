@@ -3,13 +3,15 @@ import os
 import base64
 import fal_client
 import httpx
+from groq import Groq
+from dotenv import load_dotenv
 from PIL import Image
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from template_utils import composite_portrait_into_frame, TEMPLATE_PATH
 
-os.environ["FAL_KEY"] = "15f2a001-47c9-407a-92af-5f8fd30861fa:d6b401f6fee74d457311d777a9f7dd9e"
+load_dotenv()  # backend/.env 로드
 
 app = FastAPI(title="영정 사진 생성 API")
 
@@ -107,8 +109,8 @@ def _square_crop_from_top(img: Image.Image) -> Image.Image:
         return img.crop((x, 0, x + h, h))
 
 
-# ── 추모사 생성 ────────────────────────────────────────────────────────────
-def _build_eulogy(
+# ── 추모사: 템플릿 폴백 ────────────────────────────────────────────────────
+def _build_eulogy_template(
     name: str, current_age: int,
     occupation: str, family: str, values: str, final_message: str,
 ) -> str:
@@ -173,6 +175,60 @@ def _build_eulogy(
     return "\n".join(parts)
 
 
+# ── 추모사: Groq API ───────────────────────────────────────────────────────
+async def _generate_eulogy_with_groq(
+    name: str, current_age: int, gender: str,
+    occupation: str, family: str, values: str, final_message: str,
+) -> str:
+    gender_kor = "남성" if gender == "male" else "여성"
+
+    details = f"이름: {name}\n나이: {current_age}세\n성별: {gender_kor}"
+    if occupation:
+        details += f"\n직업/직책: {occupation}"
+    if family:
+        details += f"\n가족 관계: {family}"
+    if values:
+        details += f"\n삶에서 소중히 여긴 것: {values}"
+    if final_message:
+        details += f"\n남기고 싶은 말: {final_message}"
+
+    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "당신은 한국의 장례식 추모사를 전문적으로 작성하는 작가입니다. "
+                    "출력 언어 규칙 (절대 위반 금지): "
+                    "오직 한글(가-힣), 숫자(0-9), 한국어 문장 부호(. , ! ? … ' \" ( ) \n)만 사용하세요. "
+                    "다음 문자들은 절대 사용 금지입니다: 한자(예: 們 愛 爱 支持 熱情 先生 前 的 等), "
+                    "영어 알파벳, 일본어 히라가나·가타카나. "
+                    "주어진 정보를 바탕으로 진심 어린 한국어 추모사를 작성해주세요. "
+                    "형식: 단락 구분이 있는 산문체. 600~900자 분량. "
+                    "첫 줄은 고인의 이름으로 시작하고, 마지막은 명복을 비는 문장으로 마무리하세요. "
+                    "감동적이고 인간적이며, 클리셰를 피하고 고인의 삶을 구체적으로 담아주세요. "
+                    "따뜻하고 자연스러운 현대 한국어로 작성하세요."
+                ),
+            },
+            {
+                "role": "user",
+                "content": f"다음 정보를 바탕으로 추모사를 작성해주세요:\n\n{details}",
+            },
+        ],
+        max_tokens=1024,
+    )
+    import re
+    text = response.choices[0].message.content
+    # CJK 한자 범위 제거 (한글은 유지, 한자·중국어·일본어만 제거)
+    text = re.sub(r"[\u2E80-\u2EFF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]", "", text)
+    # 영어 알파벳 제거 (숫자는 유지)
+    text = re.sub(r"[A-Za-z]+", "", text)
+    # 연속 공백 정리
+    text = re.sub(r" {2,}", " ", text).strip()
+    return text
+
+
 # ── 엔드포인트 ─────────────────────────────────────────────────────────────
 @app.get("/health")
 async def health():
@@ -195,8 +251,17 @@ async def generate_eulogy(
     values: str = Form(default=""),
     final_message: str = Form(default=""),
 ):
-    _ = gender  # 향후 성별별 문체 확장을 위해 수신만 함
-    eulogy = _build_eulogy(name, current_age, occupation, family, values, final_message)
+    # Claude API 시도 → 실패 시 템플릿 폴백
+    try:
+        eulogy = await _generate_eulogy_with_groq(
+            name, current_age, gender, occupation, family, values, final_message
+        )
+        print("[INFO] Groq API로 추모사 생성 성공")
+    except Exception as e:
+        print(f"[WARN] Claude API 추모사 생성 실패, 템플릿 폴백: {e}")
+        eulogy = _build_eulogy_template(
+            name, current_age, occupation, family, values, final_message
+        )
     return JSONResponse({"eulogy": eulogy})
 
 

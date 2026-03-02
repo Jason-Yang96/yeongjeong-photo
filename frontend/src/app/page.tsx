@@ -253,7 +253,7 @@ export default function Home() {
       {/* 히어로 */}
       <div className="px-4 pt-7 pb-0 text-center" style={{ background: "linear-gradient(180deg, #fef0e6 0%, #ffffff 100%)" }}>
         <p className="text-xs font-semibold tracking-widest mb-1.5" style={{ color: "var(--primary)" }}>GOIPRIME</p>
-        <h1 className="text-xl font-bold text-gray-900 mb-1 leading-snug">끝을 기반으로<br />지금을 바로 세우다</h1>
+        <h1 className="text-xl font-bold text-gray-900 mb-1 leading-snug">마지막을 기반으로<br />지금을 바로 세우다</h1>
         <p className="text-xs text-gray-500 mb-5">가장 아름다운 기억으로 남을 수 있도록</p>
 
         {/* 모드 탭 — 선택됨: 초록 텍스트 + 볼드 + 연초록 배경 */}
